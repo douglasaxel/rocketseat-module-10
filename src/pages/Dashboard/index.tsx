@@ -27,7 +27,8 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     async function loadFoods(): Promise<void> {
-      // TODO LOAD FOODS
+      const res = await api.get('/foods');
+      setFoods(res.data);
     }
 
     loadFoods();
@@ -37,62 +38,71 @@ const Dashboard: React.FC = () => {
     food: Omit<IFoodPlate, 'id' | 'available'>,
   ): Promise<void> {
     try {
-      // TODO ADD A NEW FOOD PLATE TO THE API
+      const { data } = await api.post('/foods', food);
+      setFoods([...foods, data]);
     } catch (err) {
       console.log(err);
     }
   }
 
+  //https://storage.googleapis.com/golden-wind/bootcamp-gostack/desafio-food/food3.png
+
   async function handleUpdateFood(
     food: Omit<IFoodPlate, 'id' | 'available'>,
   ): Promise<void> {
-    // TODO UPDATE A FOOD PLATE ON THE API
+    const { data } = await api.put<IFoodPlate>(`/foods/${editingFood.id}`, { ...food, available: true });
+    const index = foods.findIndex(v => v.id === editingFood.id);
+    let copyFoods = [...foods];
+    copyFoods[index] = data;
+    setFoods(copyFoods);
   }
 
-  async function handleDeleteFood(id: number): Promise<void> {
-    // TODO DELETE A FOOD PLATE FROM THE API
-  }
+    async function handleDeleteFood(id: number): Promise<void> {
+      await api.delete(`/foods/${id}`);
+      setFoods(foods.filter(v => v.id !== id));
+    }
 
-  function toggleModal(): void {
-    setModalOpen(!modalOpen);
-  }
+    function toggleModal(): void {
+      setModalOpen(!modalOpen);
+    }
 
-  function toggleEditModal(): void {
-    setEditModalOpen(!editModalOpen);
-  }
+    function toggleEditModal(): void {
+      setEditModalOpen(!editModalOpen);
+    }
 
-  function handleEditFood(food: IFoodPlate): void {
-    // TODO SET THE CURRENT EDITING FOOD ID IN THE STATE
-  }
+    function handleEditFood(food: IFoodPlate): void {
+      setEditingFood(food);
+      toggleEditModal();
+    }
 
-  return (
-    <>
-      <Header openModal={toggleModal} />
-      <ModalAddFood
-        isOpen={modalOpen}
-        setIsOpen={toggleModal}
-        handleAddFood={handleAddFood}
-      />
-      <ModalEditFood
-        isOpen={editModalOpen}
-        setIsOpen={toggleEditModal}
-        editingFood={editingFood}
-        handleUpdateFood={handleUpdateFood}
-      />
+    return (
+      <>
+        <Header openModal={toggleModal} />
+        <ModalAddFood
+          isOpen={modalOpen}
+          setIsOpen={toggleModal}
+          handleAddFood={handleAddFood}
+        />
+        <ModalEditFood
+          isOpen={editModalOpen}
+          setIsOpen={toggleEditModal}
+          editingFood={editingFood}
+          handleUpdateFood={handleUpdateFood}
+        />
 
-      <FoodsContainer data-testid="foods-list">
-        {foods &&
-          foods.map(food => (
-            <Food
-              key={food.id}
-              food={food}
-              handleDelete={handleDeleteFood}
-              handleEditFood={handleEditFood}
-            />
-          ))}
-      </FoodsContainer>
-    </>
-  );
-};
+        <FoodsContainer data-testid="foods-list">
+          {foods &&
+            foods.map(food => (
+              <Food
+                key={food.id}
+                food={food}
+                handleDelete={handleDeleteFood}
+                handleEditFood={handleEditFood}
+              />
+            ))}
+        </FoodsContainer>
+      </>
+    );
+  };
 
-export default Dashboard;
+  export default Dashboard;
